@@ -1,3 +1,4 @@
+/* eslint-disable import/no-anonymous-default-export */
 import { NextApiRequest, NextApiResponse } from "next";
 import { Readable } from "stream";
 import Stripe from "stripe";
@@ -22,11 +23,12 @@ export const config = {
 
 const relevantEvents = new Set([
 	"checkout.session.completed",
+	"customer.subscription.created",
 	"customer.subscription.updated",
 	"customer.subscription.deleted",
 ]);
 
-export default async function (req: NextApiRequest, resp: NextApiResponse) {
+export default async (req: NextApiRequest, resp: NextApiResponse) => {
 	if (req.method === "POST") {
 		const buf = await buffer(req);
 		const secret = req.headers["stripe-signature"];
@@ -48,6 +50,7 @@ export default async function (req: NextApiRequest, resp: NextApiResponse) {
 		if (relevantEvents.has(type)) {
 			try {
 				switch (type) {
+					case "customer.subscription.created":
 					case "customer.subscription.updated":
 					case "customer.subscription.deleted":
 						const subscription = event.data.object as Stripe.Subscription;
